@@ -1,6 +1,6 @@
-import type { Admin, ConversationsResponse, Conversation, MessagesResponse, StatsResponse } from '@/types/api';
+import type { Admin, ConversationsResponse, Conversation, MessagesResponse, AdminStatsResponse } from '@/types/api';
 
-const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/admin` : `/api/admin`;
+const API_BASE = import.meta.env.VITE_API_URL;
 
 function getAuthToken(): string | null {
   return localStorage.getItem('admin_token');
@@ -39,12 +39,12 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T
 export const api = {
   auth: {
     login: (email: string, password: string) =>
-      apiRequest<{ token: string; admin: Admin }>('/auth/login', {
+      apiRequest<{ token: string; admin: Admin }>('/admin/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       }),
     me: () =>
-      apiRequest<{ admin: Admin }>('/auth/me'),
+      apiRequest<{ admin: Admin }>('/admin/auth/me'),
   },
   conversations: {
     list: (params?: { page?: number; limit?: number; status?: string; search?: string }) => {
@@ -54,25 +54,25 @@ export const api = {
       if (params?.status) searchParams.set('status', params.status);
       if (params?.search) searchParams.set('search', params.search);
       const query = searchParams.toString();
-      return apiRequest<ConversationsResponse>(`/conversations${query ? `?${query}` : ''}`);
+      return apiRequest<ConversationsResponse>(`/admin/conversations${query ? `?${query}` : ''}`);
     },
     get: (id: string) =>
-      apiRequest<{ conversation: Conversation }>(`/conversations/${id}`),
+      apiRequest<{ conversation: Conversation }>(`/admin/conversations/${id}`),
     getMessages: (id: string, params?: { cursor?: string; limit?: number }) => {
       const searchParams = new URLSearchParams();
       if (params?.cursor) searchParams.set('cursor', params.cursor);
       if (params?.limit) searchParams.set('limit', params.limit.toString());
       const query = searchParams.toString();
-      return apiRequest<MessagesResponse>(`/conversations/${id}/messages${query ? `?${query}` : ''}`);
+      return apiRequest<MessagesResponse>(`/admin/conversations/${id}/messages${query ? `?${query}` : ''}`);
     },
     updateStatus: (id: string, status: string) =>
-      apiRequest<{ conversation: Conversation }>(`/conversations/${id}/status`, {
+      apiRequest<{ conversation: Conversation }>(`/admin/conversations/${id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
       }),
   },
   stats: {
     get: () =>
-      apiRequest<StatsResponse>('/stats'),
+      apiRequest<AdminStatsResponse>('/admin/stats'),
   },
 };

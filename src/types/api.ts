@@ -2,6 +2,7 @@ export interface Admin {
   id: string;
   email: string;
   name: string;
+  createdAt?: string;
 }
 
 export interface User {
@@ -23,28 +24,39 @@ export interface Message {
 export interface Conversation {
   id: string;
   phoneNumber: string;
+  contactName: string;
   status: 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
-  lastMessageAt: string;
   createdAt: string;
-  user: User | null;
-  lastMessage: { content: string; type: string; createdAt: string } | null;
-  messages?: Message[];
+  updatedAt: string;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 }
 
 export interface ConversationsResponse {
   conversations: Conversation[];
-  total: number;
-  page: number;
-  limit: number;
+  pagination: Pagination;
 }
 
 export interface MessagesResponse {
   messages: Message[];
   nextCursor?: string;
-  hasMore: boolean;
 }
 
 export interface StatsResponse {
+  stats: {
+    totalUsers: number;
+    openTickets: number;
+    pendingPayments: number;
+    newProspects: number;
+  };
+}
+
+export interface AdminStatsResponse {
   totalConversations: number;
   activeConversations: number;
   totalMessages: number;

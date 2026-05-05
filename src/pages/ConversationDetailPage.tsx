@@ -112,7 +112,7 @@ export default function ConversationDetailPage() {
   }, []);
 
   const displayName = conversation
-    ? conversation.user?.name || conversation.phoneNumber
+    ? conversation.contactName || conversation.phoneNumber
     : '';
 
   const handleStatusChange = (status: string) => {

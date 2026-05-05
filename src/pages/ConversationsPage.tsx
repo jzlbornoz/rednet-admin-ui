@@ -55,12 +55,12 @@ export default function ConversationsPage() {
     search: debouncedSearch,
   });
 
-  const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
+  const totalPages = data ? Math.ceil(data.pagination.total / PAGE_SIZE) : 0;
 
   const conversations = data?.conversations ?? [];
 
   const displayName = (conv: Conversation) =>
-    conv.user?.name || conv.phoneNumber;
+    conv.contactName || conv.phoneNumber;
 
   return (
     <div className="flex h-screen flex-col">
@@ -118,13 +118,13 @@ export default function ConversationsPage() {
                     <div className="flex shrink-0 items-center gap-2">
                       {getStatusBadge(conv.status)}
                       <span className="text-xs text-muted-foreground">
-                        {conv.lastMessageAt ? formatRelativeTime(conv.lastMessageAt) : ''}
+                        {conv.updatedAt ? formatRelativeTime(conv.updatedAt) : ''}
                       </span>
                     </div>
                   </div>
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {conv.lastMessage?.content ?? 'No messages yet'}
-                  </p>
+<p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      No messages yet
+                    </p>
                 </div>
               </button>
             ))}
@@ -135,7 +135,7 @@ export default function ConversationsPage() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t px-4 py-2">
           <span className="text-xs text-muted-foreground">
-            Page {page} of {totalPages} · {data?.total ?? 0} conversations
+            Page {page} of {totalPages} · {data?.pagination.total ?? 0} conversations
           </span>
           <div className="flex gap-1">
             <Button

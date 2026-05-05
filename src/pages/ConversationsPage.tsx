@@ -55,7 +55,7 @@ export default function ConversationsPage() {
     search: debouncedSearch,
   });
 
-  const totalPages = data ? Math.ceil(data.pagination.total / PAGE_SIZE) : 0;
+  const totalPages = data ? Math.ceil(data?.pagination?.total / PAGE_SIZE) : 0;
 
   const conversations = data?.conversations ?? [];
 
@@ -122,9 +122,9 @@ export default function ConversationsPage() {
                       </span>
                     </div>
                   </div>
-<p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      No messages yet
-                    </p>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    No messages yet
+                  </p>
                 </div>
               </button>
             ))}

@@ -8,22 +8,21 @@ import { Button } from '@/components/ui/button';
 import { Phone } from 'lucide-react';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, loginError, clearLoginError } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    clearLoginError();
     setIsLoading(true);
     try {
       await login(email, password);
       navigate('/');
     } catch {
-      setError('Invalid email or password');
+      // Error already handled by authContext
     } finally {
       setIsLoading(false);
     }
@@ -41,9 +40,9 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
+            {loginError && (
               <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
+                {loginError}
               </div>
             )}
             <div className="space-y-2">

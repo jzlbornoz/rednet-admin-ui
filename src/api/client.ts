@@ -8,6 +8,8 @@ function getAuthToken(): string | null {
 
 async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const token = getAuthToken();
+  const isLoginRequest = endpoint === '/admin/auth/login';
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options?.headers as Record<string, string>),
@@ -24,7 +26,10 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T
 
   if (response.status === 401) {
     localStorage.removeItem('admin_token');
-    window.location.href = '/login';
+    // Only redirect for authenticated requests, not for login
+    if (!isLoginRequest) {
+      window.location.href = '/login';
+    }
     throw new Error('Unauthorized');
   }
 

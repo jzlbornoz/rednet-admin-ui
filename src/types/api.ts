@@ -62,3 +62,8 @@ export interface AdminStatsResponse {
   totalMessages: number;
   totalMessagesToday: number;
 }
+
+export interface SendMessageResponse {
+  wamid: string;
+  messageId: string;
+}

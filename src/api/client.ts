@@ -1,4 +1,4 @@
-import type { Admin, ConversationsResponse, Conversation, MessagesResponse, AdminStatsResponse } from '@/types/api';
+import type { Admin, ConversationsResponse, Conversation, MessagesResponse, AdminStatsResponse, SendMessageResponse } from '@/types/api';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -74,6 +74,11 @@ export const api = {
       apiRequest<{ conversation: Conversation }>(`/admin/conversations/${id}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
+      }),
+    sendMessage: (phoneNumber: string, content: string) =>
+      apiRequest<SendMessageResponse>(`/admin/conversations/${phoneNumber}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ content }),
       }),
   },
   stats: {

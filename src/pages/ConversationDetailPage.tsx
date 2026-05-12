@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useConversation, useMessages, useUpdateConversationStatus } from '@/hooks/queries';
+import { useConversation, useMessages, useUpdateConversationStatus, useSendMessage } from '@/hooks/queries';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-
+import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { ChevronDown, ArrowLeft, User, Image, FileText, Check, CheckCheck, X } from 'lucide-react';
+import { ChevronDown, ArrowLeft, User, Image, FileText, Check, CheckCheck, X, Send } from 'lucide-react';
 import type { Conversation, Message } from '@/types/api';
 
 function formatTime(dateStr: string): string {
@@ -86,6 +86,73 @@ function MessageBubble({ message }: { message: Message }) {
   );
 }
 
+function MessageInputBar({
+  conversationStatus,
+  onSend,
+  isPending,
+}: {
+  phoneNumber: string;
+  conversationStatus: Conversation['status'];
+  onSend: (content: string) => void;
+  isPending: boolean;
+}) {
+  const [inputValue, setInputValue] = useState('');
+
+  const handleSend = useCallback(() => {
+    const trimmed = inputValue.trim();
+    if (!trimmed || inputValue.length > 4096 || isPending) return;
+    onSend(trimmed);
+    setInputValue('');
+  }, [inputValue, isPending, onSend]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    },
+    [handleSend],
+  );
+
+  const isClosed = conversationStatus !== 'ACTIVE';
+  const isDisabled = !inputValue.trim() || inputValue.length > 4096 || isPending;
+
+  return (
+    <div className="border-t bg-white px-4 py-3">
+      {isClosed && (
+        <div className="mb-2 rounded-md bg-amber-50 px-3 py-1.5 text-xs text-amber-700 border border-amber-200">
+          Esta conversación está cerrada
+        </div>
+      )}
+      <div className="flex items-end gap-2">
+        <div className="relative flex-1">
+          <Textarea
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message..."
+            className="min-h-[40px] max-h-[120px] resize-none pr-2"
+            rows={1}
+          />
+          {inputValue.length > 3500 && (
+            <span
+              className={`absolute bottom-1 right-2 text-[11px] ${
+                inputValue.length > 4096 ? 'text-red-500 font-medium' : 'text-muted-foreground'
+              }`}
+            >
+              {inputValue.length}/4096
+            </span>
+          )}
+        </div>
+        <Button size="icon" onClick={handleSend} disabled={isDisabled} className="shrink-0">
+          <Send className="size-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function ConversationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -95,9 +162,13 @@ export default function ConversationDetailPage() {
   const { data: convData, isLoading: convLoading } = useConversation(id ?? '');
   const { data: messagesData, isLoading: messagesLoading } = useMessages(id ?? '', { limit: 50 });
   const updateStatus = useUpdateConversationStatus(id ?? '');
+  const sendMessage = useSendMessage(id ?? '');
 
   const conversation = convData?.conversation;
-  const messages = useMemo(() => messagesData?.messages ?? [], [messagesData]);
+  const messages = useMemo(
+    () => (messagesData?.messages ?? []).slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
+    [messagesData],
+  );
 
   useEffect(() => {
     if (scrollRef.current && isAtBottom) {
@@ -118,6 +189,17 @@ export default function ConversationDetailPage() {
   const handleStatusChange = (status: string) => {
     updateStatus.mutate(status);
   };
+
+  const handleSend = useCallback(
+    (content: string) => {
+      if (!conversation) return;
+      sendMessage.mutate({ phoneNumber: conversation.phoneNumber, content });
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    },
+    [conversation, sendMessage],
+  );
 
   if (convLoading || messagesLoading) {
     return (
@@ -189,6 +271,15 @@ export default function ConversationDetailPage() {
           </div>
         )}
       </div>
+
+      {conversation && (
+        <MessageInputBar
+          phoneNumber={conversation.phoneNumber}
+          conversationStatus={conversation.status}
+          onSend={handleSend}
+          isPending={sendMessage.isPending}
+        />
+      )}
     </div>
   );
 }
